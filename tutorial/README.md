@@ -315,7 +315,7 @@ If the audio source contains multiple channels, Gemini combines those channels i
     ────────────────────────────────────────────────────────
     4. 텍스트 전처리 & 임베딩
     ────────────────────────────────────────────────────────
-    • 긴 전사 결과를 512~1024 토큰 단위로 분할(Chunking)
+    • 긴 전사 결과를 512~1024 토큰 단위로 분할(Langchain's Semantic Chunking)
     • 각 청크 문자열을 Embedding API로 호출 → 임베딩 벡터 생성
     • 예시: /api/embedding 라우트에서 transcript를 받아 처리
 
