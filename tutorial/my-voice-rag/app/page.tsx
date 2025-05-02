@@ -14,6 +14,13 @@ export default function Home() {
       >
         Go to Recorder
       </Link>
+
+      <Link
+        href="/chat"
+        className="px-6 py-3 rounded bg-green-600 text-white hover:bg-green-700"
+      >
+        Go to Chat
+      </Link>
     </main>
   );
 }
