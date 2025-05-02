@@ -31,14 +31,14 @@ export interface ProcessedChunk {
 export function generateHybridEmbeddings(
   denseEmbeddings: ChunkEmbedding[],
 ): ProcessedChunk[] {
-  const documents = denseEmbeddings.map((d) => d.chunk);
+  const documents: string[] = denseEmbeddings.map((d) => d.chunk);
 
-  const vocabulary = buildVocabulary(documents);
-  const docTermFreqs = documents.map((doc) => termFrequency(doc, vocabulary));
-  const idf = inverseDocumentFrequency(docTermFreqs, documents.length);
+  const vocabulary: Map<string, number> = buildVocabulary(documents);
+  const docTermFreqs: Map<string, number>[] = documents.map((doc) => termFrequency(doc, vocabulary));
+  const idf: Map<string, number> = inverseDocumentFrequency(docTermFreqs, documents.length);
 
   const processed: ProcessedChunk[] = denseEmbeddings.map((d, idx) => {
-    const tf = docTermFreqs[idx];
+    const tf: Map<string, number> = docTermFreqs[idx];
     // Build sparse vector (indices & tf-idf weights).
     const indices: number[] = [];
     const values: number[] = [];
@@ -73,6 +73,7 @@ export function toJsonLines(chunks: ProcessedChunk[]): string {
         id: c.id,
         embedding: c.denseEmbedding,
         sparse_embedding: c.sparseEmbedding,
+        metadata: { text: c.text },
       }),
     )
     .join("\n");

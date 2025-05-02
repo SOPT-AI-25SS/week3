@@ -34,7 +34,7 @@ type ErrorResponse = { success: false; message: string };
 // --- Constants -------------------------------------------------------------
 
 const DEFAULT_MIME_TYPE = "audio/webm";
-const DEFAULT_PROMPT = "Transcribe the audio into English text.";
+const DEFAULT_PROMPT = "Transcribe the audio into English or Korean text.";
 
 // --- Handler ---------------------------------------------------------------
 
@@ -58,13 +58,15 @@ export async function POST(request: NextRequest) {
 
     const genai = getGenaiClient();
 
-    const response : GenerateContentResponse = await genai.models.generateContent({
+    const respRaw = (await genai.models.generateContent({
       model: "gemini-2.5-flash-preview-04-17",
       contents: createUserContent([
-        createPartFromUri(body.gcsPath, 'audio/mpeg'),
+        createPartFromUri(body.gcsPath, mimeType),
         instructionPrompt,
       ]),
-    } as any); // <-- as any 추가 (타입 검사 비활성화)
+    }));
+
+    const response = respRaw as GenerateContentResponse;
 
     if (!response.text || response.text.trim() === "") {
       return jsonError("Model returned empty transcript.", 502);
