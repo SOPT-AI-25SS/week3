@@ -13,7 +13,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createPartFromUri, createUserContent } from "@google/genai";
+import {createPartFromUri, createUserContent, GenerateContentResponse} from "@google/genai";
 
 import { getGenaiClient } from "@/lib/genai";
 
@@ -58,13 +58,13 @@ export async function POST(request: NextRequest) {
 
     const genai = getGenaiClient();
 
-    const response = await genai.models.generateContent({
-      model: "gemini-2.0-flash", // Low latency, suitable for transcription
+    const response : GenerateContentResponse = await genai.models.generateContent({
+      model: "gemini-2.5-flash-preview-04-17",
       contents: createUserContent([
-        createPartFromUri(body.gcsPath, mimeType),
+        createPartFromUri(body.gcsPath, 'audio/mpeg'),
         instructionPrompt,
       ]),
-    });
+    } as any); // <-- as any 추가 (타입 검사 비활성화)
 
     if (!response.text || response.text.trim() === "") {
       return jsonError("Model returned empty transcript.", 502);
