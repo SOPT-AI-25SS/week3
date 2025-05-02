@@ -46,6 +46,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as RagRequestBody;
 
+    console.log('body:::', body)
+
     // Validate input early and clearly
     if (!isVertexEndpoint(body.endpoint)) {
       return error("`endpoint` must be a valid Vertex IndexEndpoint resource name.", 422);
@@ -77,6 +79,8 @@ export async function POST(request: NextRequest) {
 
     const location = process.env.GCP_LOCATION ?? "us-central1";
 
+    console.log('pre chunks >>>>>>>>>>>>>>>>>>>> ', projectId)
+
     const chunks = await retrieveChunks({
       endpoint: body.endpoint,
       projectId,
@@ -84,6 +88,8 @@ export async function POST(request: NextRequest) {
       queryVector,
       topK,
     });
+
+    console.log('chunks >>>>>>>>>>>>>>>>>>>> ', chunks)
 
     // -------------------------------------------------------------------
     // 3. Generate answer

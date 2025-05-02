@@ -45,6 +45,8 @@ export async function retrieveChunks(params: {
   queryVector: number[];
   topK: number;
 }): Promise<RetrievedChunk[]> {
+  console.log('pre index >>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+
   const raw = await queryHybridIndex({
     endpoint: params.endpoint,
     projectId: params.projectId,
@@ -52,6 +54,9 @@ export async function retrieveChunks(params: {
     denseQuery: params.queryVector,
     topK: params.topK,
   });
+
+  console.log('post index >>>>>>>>>>>>>>>>>>>>>>>>>>>>>', raw)
+
 
   return parseNeighbors(raw);
 }

@@ -759,3 +759,117 @@ If the audio source contains multiple channels, Gemini combines those channels i
     • GCP 자원(Cloud Storage, Vertex AI, BigQuery, etc.)을 적절히 연결해 실제 PoC나 운영 환경에 적용
 
     이렇게 하면 README.md에서 제시된 워크숍 시나리오(음성 녹음 ~ 챗봇)에 대응하는 End-to-End 구현이 가능해집니다.
+
+---
+
+## 📄 STORM Parse – Document → Markdown Conversion API
+
+This repository now also supports **STORM Parse**, a Retrieval-Augmented Generation (RAG) endpoint that converts uploaded documents (PDF or image) into Markdown. The endpoint is fully self-contained and follows the same clean, modular principles used for the existing voice-to-RAG pipeline.
+
+### 1. Endpoint summary
+
+```
+POST /convert/rag
+```
+
+|                | Value                                            |
+|----------------|--------------------------------------------------|
+| **Purpose**    | Convert a document to Markdown with RAG prompt. |
+| **Auth**       | HTTP header **`storm-api-key: <token>`**         |
+| **Content-Type** | `multipart/form-data`                            |
+| **Allowed files** | `pdf`, `png`, `jpg`, `jpeg`                     |
+
+### 2. Request
+
+```
+POST /convert/rag HTTP/1.1
+Host: <your-domain>
+storm-api-key: ********************
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="file"; filename="sample.pdf"
+Content-Type: application/pdf
+
+<binary-data>
+------WebKitFormBoundary--
+```
+
+#### Body parameters
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `file` | File | Yes | PDF / PNG / JPG / JPEG only |
+
+### 3. Response
+
+`HTTP 200 OK`
+
+```json
+{
+  "pages": [
+    {
+      "page_number": 1,
+      "content": "Markdown content of page 1"
+    },
+    {
+      "page_number": 2,
+      "content": "Markdown content of page 2"
+    }
+  ]
+}
+```
+
+#### Error codes
+
+| Status | Meaning                                   |
+|--------|-------------------------------------------|
+| 400    | Invalid file type or missing `file` field |
+| 500    | Internal error during processing          |
+
+### 4. cURL example
+
+```bash
+curl -X POST \
+  -H "storm-api-key: $STORM_API_KEY" \
+  -F "file=@/path/to/document.pdf" \
+  https://<your-domain>/convert/rag
+```
+
+### 5. JavaScript (fetch) example
+
+```ts
+async function convertDocument(file: File): Promise<void> {
+  const form = new FormData();
+  form.append('file', file);
+
+  const res = await fetch('/convert/rag', {
+    method: 'POST',
+    headers: { 'storm-api-key': process.env.NEXT_PUBLIC_STORM_API_KEY! },
+    body: form,
+  });
+
+  if (!res.ok) throw new Error(`Failed – ${res.status}`);
+  const data = await res.json();
+  console.log(data.pages);
+}
+```
+
+### 6. Implementation guide (my-voice-rag)
+
+1. **Create API route** – `app/api/convert/rag/route.ts`
+   • Parse `multipart/form-data` (see `busboy` or `formidable`).
+   • Validate MIME type and size.
+2. **Load STORM API key** – add `STORM_API_KEY="…"` to `.env` (exposed to runtime only) and proxy through the `storm-api-key` header to downstream services if needed.
+3. **Vision → Markdown** –
+   • Pass the raw file to your Vision LLM (Gemini 1.5 Pro or similar).
+   • Prompt pattern: _“Convert every element (text, table, image) to Markdown. Output **only** valid Markdown.”_
+   • Split multi-page documents and stream per-page responses for UX responsiveness.
+4. **Return JSON payload** exactly as specified above.
+5. **(Optional) Vector-index pages** – Re-use `/api/vector-index` to embed & store each Markdown page so that the existing RAG chat endpoint can immediately query the converted document.
+
+The new endpoint has zero coupling with the existing audio pipeline and can be iterated or scaled independently.
+
+---
+
+> Need help? Open an issue or ping the maintainer listed in `package.json`.

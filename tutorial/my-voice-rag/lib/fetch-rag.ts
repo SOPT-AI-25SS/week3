@@ -8,6 +8,7 @@ export async function fetchRag(params: {
   endpoint: string;
   question: string;
 }): Promise<RagApiResponse> {
+  console.log(params)
   const response = await fetch("/api/rag", {
     method: "POST",
     headers: {
