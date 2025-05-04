@@ -19,6 +19,7 @@ export default function RecordPage() {
 
   const [isUploading, setIsUploading] = useState(false);
   const [transcript, setTranscript] = useState<string | null>(null);
+  const [isBuilding, setIsBuilding] = useState(false);
 
   const handleUpload = async () => {
     if (!blob) return;
@@ -38,6 +39,15 @@ export default function RecordPage() {
 
       const data = (await res.json()) as TranscriptResponse;
       setTranscript(data.text);
+
+      // automatically launch embedding + import
+      setIsBuilding(true);
+      await fetch("/api/pipeline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: data.text }),
+      });
+      setIsBuilding(false);
     } catch (err) {
       alert((err as Error).message || "Upload failed");
     } finally {
@@ -89,6 +99,10 @@ export default function RecordPage() {
         <div className="whitespace-pre-wrap rounded border bg-gray-100 p-4">
           {transcript}
         </div>
+      )}
+
+      {isBuilding && (
+        <p className="text-sm text-gray-500">Building knowledge base…</p>
       )}
     </div>
   );
