@@ -2,7 +2,7 @@ import {
   GoogleGenAI,
   createPartFromUri,
   createUserContent,
-  Part,
+  Part, Content,
 } from "@google/genai";
 import { NextResponse } from "next/server";
 
@@ -31,14 +31,16 @@ function buildInlineContent(base64: string, mimeType: string): Part[] {
 async function buildFileContent(
   buffer: Buffer,
   mimeType: string,
-): Promise<Part[]> {
+): Promise<Content> {
+  const blob = new Blob([buffer], { type: mimeType });
+
   const uploadRes = await genai.files.upload({
-    file: buffer,
+    file: blob,
     config: { mimeType },
   });
 
   return createUserContent([
-    createPartFromUri(uploadRes.uri, mimeType),
+    createPartFromUri(<string>uploadRes.uri, mimeType),
     TRANSCRIBE_PROMPT,
   ]);
 }

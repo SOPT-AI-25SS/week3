@@ -52,7 +52,9 @@ export const calculateDistances = (
   const dists: number[] = [];
   const updated = items.map((item, idx) => {
     if (idx < items.length - 1 && item.embedding && items[idx + 1].embedding) {
-      const sim = cosineSimilarity(item.embedding, items[idx + 1].embedding);
+      const embA = item.embedding as number[];
+      const embB = items[idx + 1].embedding as number[];
+      const sim = cosineSimilarity(embA, embB);
       const dist = 1 - sim;
       dists.push(dist);
       return { ...item, distanceToNext: dist };
