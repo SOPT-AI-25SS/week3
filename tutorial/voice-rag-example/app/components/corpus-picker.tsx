@@ -11,9 +11,9 @@ export default function CorpusPicker(): React.ReactElement {
     const title = prompt("New corpus title?");
     if (!title) return;
     const description = prompt("Description (optional)") ?? "";
+
     try {
       setIsCreating(true);
-      // Briefly clear selection to show progress option
       select(undefined as unknown as RagCorpus);
       const res = await fetch("/api/corpora", {
         method: "POST",

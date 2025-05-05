@@ -61,11 +61,11 @@ async function ensureRagCorpus(
 
 export async function embedAndImport(
   transcript: string,
-  embedFn: (txt: string) => Promise<number[]>,
+  // embedFn: (txt: string) => Promise<number[]>,
   bucket: string,
   corpusName: string,
 ): Promise<string> {
-  const records = await chunkAndEmbed(transcript, embedFn);
+  const records = await chunkAndEmbed(transcript);
   const jsonl = records.map((r) => JSON.stringify(r)).join("\n");
 
   const objectName = `rag/auto-${Date.now()}.jsonl`;
@@ -84,13 +84,54 @@ export async function embedAndImport(
     corpusName,
   });
 
+  // /** Properties of an ImportRagFilesConfig. */
+  //                 interface IImportRagFilesConfig {
+  //
+  //                     /** ImportRagFilesConfig gcsSource */
+  //                     gcsSource?: (google.cloud.aiplatform.v1.IGcsSource|null);
+  //
+  //                     /** ImportRagFilesConfig googleDriveSource */
+  //                     googleDriveSource?: (google.cloud.aiplatform.v1.IGoogleDriveSource|null);
+  //
+  //                     /** ImportRagFilesConfig slackSource */
+  //                     slackSource?: (google.cloud.aiplatform.v1.ISlackSource|null);
+  //
+  //                     /** ImportRagFilesConfig jiraSource */
+  //                     jiraSource?: (google.cloud.aiplatform.v1.IJiraSource|null);
+  //
+  //                     /** ImportRagFilesConfig sharePointSources */
+  //                     sharePointSources?: (google.cloud.aiplatform.v1.ISharePointSources|null);
+  //
+  //                     /** ImportRagFilesConfig partialFailureGcsSink */
+  //                     partialFailureGcsSink?: (google.cloud.aiplatform.v1.IGcsDestination|null);
+  //
+  //                     /** ImportRagFilesConfig partialFailureBigquerySink */
+  //                     partialFailureBigquerySink?: (google.cloud.aiplatform.v1.IBigQueryDestination|null);
+  //
+  //                     /** ImportRagFilesConfig importResultGcsSink */
+  //                     importResultGcsSink?: (google.cloud.aiplatform.v1.IGcsDestination|null);
+  //
+  //                     /** ImportRagFilesConfig importResultBigquerySink */
+  //                     importResultBigquerySink?: (google.cloud.aiplatform.v1.IBigQueryDestination|null);
+  //
+  //                     /** ImportRagFilesConfig ragFileTransformationConfig */
+  //                     ragFileTransformationConfig?: (google.cloud.aiplatform.v1.IRagFileTransformationConfig|null);
+  //
+  //                     /** ImportRagFilesConfig ragFileParsingConfig */
+  //                     ragFileParsingConfig?: (google.cloud.aiplatform.v1.IRagFileParsingConfig|null);
+  //
+  //                     /** ImportRagFilesConfig maxEmbeddingRequestsPerMin */
+  //                     maxEmbeddingRequestsPerMin?: (number|null);
+  //                 }
+  // https://raw.githubusercontent.com/googleapis/google-cloud-node/484c6e0934fa16c4d500fb9d441dbf8c9f441015/packages/google-cloud-aiplatform/protos/protos.d.ts
+
   const [importOp] = await ragData.importRagFiles({
     parent: corpus,
     importRagFilesConfig: {
       gcsSource: { uris: [gcsUri] },
       ragFileTransformationConfig: {
         ragFileChunkingConfig: {
-          fixedLengthChunking: { chunkSize: 256 },
+          fixedLengthChunking: { chunkSize: 256, chunkOverlap: 64 },
         },
       },
     },

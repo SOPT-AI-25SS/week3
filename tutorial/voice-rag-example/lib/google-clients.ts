@@ -1,6 +1,6 @@
 import { VertexAI } from "@google-cloud/vertexai";
 import { Storage } from "@google-cloud/storage";
-import { v1 as aiplatform } from "@google-cloud/aiplatform";
+import {v1 as aiplatform, VertexRagDataServiceClient, VertexRagServiceClient} from "@google-cloud/aiplatform";
 
 /**
  * Shared Google Cloud clients initialised from environment variables.
@@ -18,10 +18,10 @@ export const vertex = new VertexAI({ project: PROJECT, location: LOCATION });
 export const storage = new Storage();
 
 // Vertex AI RAG Engine clients
-export const ragData = new aiplatform.VertexRagDataServiceClient({
+export const ragData: VertexRagDataServiceClient = new aiplatform.VertexRagDataServiceClient({
   apiEndpoint: `${LOCATION}-aiplatform.googleapis.com`,
 });
 
-export const ragQuery = new aiplatform.VertexRagServiceClient({
+export const ragQuery: VertexRagServiceClient = new aiplatform.VertexRagServiceClient({
   apiEndpoint: `${LOCATION}-aiplatform.googleapis.com`,
 });

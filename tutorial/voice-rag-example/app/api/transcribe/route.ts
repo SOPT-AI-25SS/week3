@@ -11,7 +11,7 @@ export const runtime = "nodejs"; // Buffer required for base64 handling
 // ===== Constants =====
 const MAX_INLINE_BYTES = 20 * 1024 * 1024; // 20 MB
 const MODEL_ID = "gemini-2.0-flash";
-const TRANSCRIBE_PROMPT = "Generate a transcript of the speech.";
+const TRANSCRIBE_PROMPT = "Generate a transcript of the speech in Korean.";
 
 // ===== Helpers =====
 const genai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY ?? "" });

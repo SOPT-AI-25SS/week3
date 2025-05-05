@@ -165,7 +165,7 @@ export const groupIntoChunks = (
 
 export interface ChunkRecord {
   id: string;
-  embedding: number[];
+  embedding?: number[];
   text: string;
 }
 
@@ -174,17 +174,21 @@ export interface ChunkRecord {
  */
 export async function chunkAndEmbed(
   text: string,
-  embedFn: (input: string) => Promise<number[]>,
+  embedFn?: (input: string) => Promise<number[]>,
   bufferSize = 1,
   percentile = 90,
 ): Promise<ChunkRecord[]> {
+  if (!embedFn) {
+    const records: ChunkRecord[] = [];
+    records.push({ id: uuid(), embedding: undefined, text: text });
+    return records;
+  }
   const sentences = await splitToSentencesWithOffsets(text);
   const sentenceObjs = structureSentences(sentences, bufferSize);
 
-  // Embed combined sentences to compute shift indices
   for (const obj of sentenceObjs) {
     if (obj.combinedSentence) {
-      obj.embedding = await embedFn(obj.combinedSentence);
+      obj.embedding = await embedFn!(obj.combinedSentence);
     }
   }
 

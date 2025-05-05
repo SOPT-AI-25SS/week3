@@ -1,0 +1,11 @@
+   ▲ Next.js 15.3.1
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 1000ms
+   Linting and checking validity of types ...
+   Collecting page data ...
+ ⚠ Using edge runtime on a page currently disables static generation for that page
+
+> Build error occurred
+[Error: Page "/api/corpora/[corpusId]/import" is missing "generateStaticParams()" so it cannot be used with "output: export" config.]

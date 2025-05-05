@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+// import { GoogleGenAI } from "@google/genai";
 import { embedAndImport } from "../../../lib/pipeline";
 
 export const runtime = "nodejs";
@@ -36,19 +36,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "GOOGLE_API_KEY not set" }, { status: 500 });
     }
 
-    const genai = new GoogleGenAI({ apiKey });
-    const modelId = process.env.EMBEDDING_MODEL_ID || "gemini-embedding-exp-03-07";
+    // const genai = new GoogleGenAI({ apiKey });
+    // const modelId = process.env.EMBEDDING_MODEL_ID || "gemini-embedding-exp-03-07";
 
-    const embedFn = async (txt: string): Promise<number[]> => {
-      const res = await genai.models.embedContent({
-        model: modelId,
-        contents: txt,
-        config: { taskType: "RETRIEVAL_DOCUMENT" },
-      });
-      return res.embeddings?.[0]?.values ?? [];
-    };
+    // const embedFn = async (txt: string): Promise<number[]> => {
+    //   const res = await genai.models.embedContent({
+    //     model: modelId,
+    //     contents: txt,
+    //     config: { taskType: "RETRIEVAL_DOCUMENT" },
+    //   });
+    //   return res.embeddings?.[0]?.values ?? [];
+    // };
 
-    const uri = await embedAndImport(text, embedFn, bucket, corpusId);
+    const uri = await embedAndImport(text, bucket, corpusId);
 
     return NextResponse.json({ ok: true, uri });
   } catch (error) {

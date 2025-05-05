@@ -22,6 +22,7 @@ export default function RecordPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [transcript, setTranscript] = useState<string | null>(null);
   const [isBuilding, setIsBuilding] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const { selected } = useCorpus();
   const { isLoading: isCorpusLoading } = useCorpus();
@@ -47,12 +48,14 @@ export default function RecordPage() {
 
       // automatically launch embedding + import
       setIsBuilding(true);
+      setIsSuccess(false);
       await fetch("/api/pipeline", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: data.text, corpusId: selected.name }),
       });
       setIsBuilding(false);
+      setIsSuccess(true);
     } catch (err) {
       alert((err as Error).message || "Upload failed");
     } finally {
@@ -120,6 +123,10 @@ export default function RecordPage() {
 
       {isBuilding && (
         <p className="text-sm text-gray-500">Building knowledge base…</p>
+      )}
+
+      {isSuccess && !isBuilding && (
+        <p className="text-sm text-green-600">Upload & corpus import completed! 🎉</p>
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-import { ragData } from "./google-clients";
+import { ragData } from "@/lib/google-clients";
 
 export interface RagCorpus {
   /**
