@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { TextEncoder } from "util";
 
 import { asCorpusPath } from "../../../lib/as-corpus-path";
-import { ragData } from "../../../lib/google-clients";
-import {VertexAI} from "@google-cloud/vertexai";
+import { VertexAI } from "@google-cloud/vertexai";
 
 export const runtime = "nodejs";
 
@@ -22,20 +21,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "messages array missing" }, { status: 400 });
     }
 
-    const ragCorpusEnv = process.env.RAG_CORPUS_NAME;
+    const url = new URL(req.url ?? "http://localhost");
+    const qc = url.searchParams.get("corpus") || process.env.RAG_CORPUS_NAME;
 
-    let ragCorpusFullPath =
-      ragCorpusEnv && process.env.GCP_PROJECT_ID
-        ? asCorpusPath(
-            ragCorpusEnv,
-            process.env.GCP_PROJECT_ID!,
-            process.env.GCP_LOCATION || "us-central1",
-          )
+    const ragCorpusFullPath =
+      qc && process.env.GCP_PROJECT_ID
+        ? asCorpusPath(qc, process.env.GCP_PROJECT_ID!, process.env.GCP_LOCATION || "us-central1")
         : undefined;
-
-    ragCorpusFullPath = 'projects/160600611948/locations/us-central1/ragCorpora/3379951520341557248'
-
-    console.log('ragCorpusFullPath >>>', ragCorpusFullPath)
 
     const ragTool = ragCorpusFullPath
       ? {
@@ -48,8 +40,6 @@ export async function POST(req: Request) {
         }
       : undefined;
 
-    console.log('ragTool >>>>>>>>>> ', ragTool)
-
     const vertex = new VertexAI({
       project: process.env.GCP_PROJECT_ID!,
       location: process.env.GCP_LOCATION || "us-central1",
@@ -61,15 +51,11 @@ export async function POST(req: Request) {
       generationConfig: { maxOutputTokens: 1024 },
     });
 
-    console.log('model >>>>>>>>>> ', model)
-
     // Transform incoming messages to Vertex AI expected structure
     const contents = messages.map((m) => ({
       role: m.role,
       parts: [{ text: m.content }],
     }));
-
-    console.log('contents >>>. ', contents)
 
     // get a streaming response from Gemini:
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -80,8 +66,7 @@ export async function POST(req: Request) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          for await (const chunk of (streamResult as any).stream) {
+          for await (const chunk of (streamResult).stream) {
             const candidate = chunk?.candidates?.[0];
             const part = candidate?.content?.parts?.[0];
             const text = part?.text as string | undefined;

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useAudioRecorder } from "./use-audio-recorder";
+import CorpusPicker from "../components/corpus-picker";
+import { useCorpus } from "../corpus-context";
 
 interface TranscriptResponse {
   text: string;
@@ -21,8 +23,11 @@ export default function RecordPage() {
   const [transcript, setTranscript] = useState<string | null>(null);
   const [isBuilding, setIsBuilding] = useState(false);
 
+  const { selected } = useCorpus();
+  const { isLoading: isCorpusLoading } = useCorpus();
+
   const handleUpload = async () => {
-    if (!blob) return;
+    if (!blob || !selected) return;
     setIsUploading(true);
     setTranscript(null);
 
@@ -45,7 +50,7 @@ export default function RecordPage() {
       await fetch("/api/pipeline", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: data.text }),
+        body: JSON.stringify({ text: data.text, corpusId: selected.name }),
       });
       setIsBuilding(false);
     } catch (err) {
@@ -59,8 +64,20 @@ export default function RecordPage() {
     <div className="mx-auto max-w-xl p-6 space-y-6">
       <h1 className="text-3xl font-semibold">Voice Recorder</h1>
 
-      <div className="flex gap-4">
-        {isRecording ? (
+      {isCorpusLoading && (
+        <p className="text-sm text-gray-500">Loading corpora… (first load may take a few seconds)</p>
+      )}
+
+      <div className="flex items-center gap-4">
+        <CorpusPicker />
+        {isCorpusLoading ? (
+          <button
+            disabled
+            className="rounded bg-gray-400 px-4 py-2 text-white opacity-60"
+          >
+            Loading…
+          </button>
+        ) : isRecording ? (
           <button
             onClick={stop}
             className="rounded bg-red-600 px-4 py-2 text-white"
@@ -69,8 +86,8 @@ export default function RecordPage() {
           </button>
         ) : (
           <button
-            onClick={start}
-            className="rounded bg-green-600 px-4 py-2 text-white"
+          onClick={start}
+          className="rounded bg-green-600 px-4 py-2 text-white"
           >
             Record
           </button>
@@ -78,7 +95,7 @@ export default function RecordPage() {
 
         <button
           onClick={handleUpload}
-          disabled={!blob || isUploading}
+          disabled={isCorpusLoading || !blob || isUploading || !selected}
           className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
         >
           {isUploading ? "Uploading…" : "Transcribe"}

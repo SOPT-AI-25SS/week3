@@ -6,13 +6,30 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    const { text } = (await request.json()) as { text?: string };
+    const { text, corpusId } = (await request.json()) as {
+      text?: string;
+      corpusId?: string;
+    };
+
     if (!text) {
       return NextResponse.json({ error: "text missing" }, { status: 400 });
     }
 
     const bucket = process.env.GCS_BUCKET_NAME!;
-    const corpusName = process.env.RAG_CORPUS_NAME!;
+
+    if (!bucket) {
+      return NextResponse.json(
+        { error: "GCS_BUCKET_NAME env missing" },
+        { status: 500 },
+      );
+    }
+
+    if (!corpusId) {
+      return NextResponse.json(
+        { error: "corpusId missing" },
+        { status: 400 },
+      );
+    }
 
     const apiKey = process.env.GOOGLE_API_KEY;
     if (!apiKey) {
@@ -31,7 +48,7 @@ export async function POST(request: Request) {
       return res.embeddings?.[0]?.values ?? [];
     };
 
-    const uri = await embedAndImport(text, embedFn, bucket, corpusName);
+    const uri = await embedAndImport(text, embedFn, bucket, corpusId);
 
     return NextResponse.json({ ok: true, uri });
   } catch (error) {

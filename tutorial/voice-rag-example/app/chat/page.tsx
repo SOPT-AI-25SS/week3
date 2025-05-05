@@ -1,9 +1,20 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import CorpusPicker from "../components/corpus-picker";
+import { useCorpus } from "../corpus-context";
 
 export default function ChatPage() {
+  const { selected } = useCorpus();
+
+  const apiPath = useMemo(() => {
+    if (selected) {
+      return `/api/chat?corpus=${encodeURIComponent(selected.name)}`;
+    }
+    return "/api/chat";
+  }, [selected]);
+
   const {
     messages,
     input,
@@ -11,7 +22,7 @@ export default function ChatPage() {
     handleSubmit,
     isLoading,
     error,
-  } = useChat({ api: "/api/chat" });
+  } = useChat({ api: apiPath });
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
@@ -21,7 +32,10 @@ export default function ChatPage() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-bold text-center">Chat with Your Meeting</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Chat</h1>
+        <CorpusPicker />
+      </div>
 
       <div className="flex flex-col gap-2 overflow-y-auto max-h-[70vh] pr-2">
         {messages.map((m) => (

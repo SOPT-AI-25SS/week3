@@ -21,18 +21,15 @@ async function ensureRagCorpus(
 ): Promise<string> {
   const parent = `projects/${projectId}/locations/${location}`;
 
-  console.log('checking corpora')
-
   // 1. If caller passed a corpus ID or path, normalize it and verify it exists.
   if (corpusName) {
     const resourcePath = asCorpusPath(corpusName, projectId, location);
 
     try {
       await ragData.getRagCorpus({ name: resourcePath });
-      return resourcePath; // ✅ Already exists, return full path
+      return resourcePath;
     } catch (err: unknown) {
       const gErr = err as Partial<GoogleError> & { code?: number };
-      // If NOT_FOUND (code 5) fall through to creation – otherwise re-throw.
       if (gErr.code !== 5) {
         throw err;
       }
@@ -41,31 +38,24 @@ async function ensureRagCorpus(
     }
   }
 
-  console.log('not existing corpora. creating new one.')
-
   // 2. Create a new corpus – if caller supplied an ID, reuse it so we don't
   //    accumulate duplicate corpora.
   const [op] = await ragData.createRagCorpus({
     parent,
     ragCorpus: {
       displayName,
-      backendConfig: {
-        ragVectorDbConfig: {
-          ragEmbeddingModelConfig: {
-            vertexPredictionEndpoint: {
-              publisherModel: "publishers/google/models/text-embedding-005",
-            },
+      vectorDbConfig: {
+        ragEmbeddingModelConfig: {
+          vertexPredictionEndpoint: {
+            model: "publishers/google/models/text-embedding-005",
           },
         },
       },
     },
     ...(corpusName ? { ragCorpusId: corpusName } : {}),
-  });
+  }, {});
 
   const [corpus] = await op.promise();
-
-  console.log('created new one.')
-
   return corpus.name as string;
 }
 
@@ -84,7 +74,6 @@ export async function embedAndImport(
     contentType: "application/json",
   });
   const gcsUri = `gs://${bucket}/${objectName}`;
-  console.log("Uploaded chunks to", gcsUri);
 
   const projectId = process.env.GCP_PROJECT_ID!;
 
@@ -95,17 +84,20 @@ export async function embedAndImport(
     corpusName,
   });
 
-  console.log("Using corpus", corpus);
-
   const [importOp] = await ragData.importRagFiles({
     parent: corpus,
     importRagFilesConfig: {
       gcsSource: { uris: [gcsUri] },
-      ragFileChunkingConfig: { chunkSize: 128 },
+      ragFileTransformationConfig: {
+        ragFileChunkingConfig: {
+          fixedLengthChunking: { chunkSize: 256 },
+        },
+      },
     },
-  });
+  }, {});
+
   await importOp.promise();
-  console.log("Import completed for", objectName);
+
 
   return gcsUri;
 }
