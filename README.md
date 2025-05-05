@@ -19,11 +19,4 @@
 * Lexical - 0.3 / Dense - 0.7
 
 ## 과제
-### Google Vertex RAG Studio 이용하기
-* 개발자 - 기능을 구현하기
-  * Step 1
-    * Google Vertex RAG Studio를 사용해 본 애플리케이션을 완성해주세요.
-  * Step 2
-    * 최신 날짜를 더 우선순위에 두도록 구현하려면 어떻게 해야할까? (날짜가 지날 수록 Decay 시킨다던지)
-    * 단순히 녹음 말고도 녹음 파일을 올려서 질의할 수 있게 하거나 아니면 YouTube Link를 첨부하면 이것의 음성을 받아서 처리하는 기능을 만들어보자.
-* 기획자 - RAG를 활용한 애플리케이션 비즈니스 기획하기
+* [README.md](tutorial%2Fvoice-rag-example%2FREADME.md)
